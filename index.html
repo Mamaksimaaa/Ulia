@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal_AI_v1.4_Final</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --panel-bg: #161920;
+            --accent-color: #00ff66;
+            --text-color: #e0e6ed;
+            --border-color: #262c3a;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .terminal-container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #6272a4;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #090a0d;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #212633;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #2d3446;
+            border-color: #44475a;
+        }
+
+        .btn-execute {
+            background: #005f26;
+            color: #fff;
+            border-color: var(--accent-color);
+            margin-left: auto;
+        }
+
+        .btn-execute:hover {
+            background: #008f39;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+        .file-badge {
+            display: none;
+            background: #282a36;
+            border: 1px dashed var(--accent-color);
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        .console-output {
+            margin-top: 8px;
+            padding: 15px;
+            background: #090a0d;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            min-height: 150px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #1d212a;
+        }
+
+        .log-user {
+            color: #8be9fd;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .log-ai {
+            color: var(--text-color);
+            white-space: pre-wrap;
+        }
+
+        .error-text {
+            color: #ff5555 !important;
+        }
+
+        .code-block-container {
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .code-block-header {
+            background: #1d212a;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #6272a4;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .copy-btn-custom {
+            background: #282a36;
+            color: var(--accent-color);
+            border: 1px solid var(--border-color);
+            padding: 3px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        .copy-btn-custom:hover {
+            background: #005f26;
+            color: #fff;
+        }
+
+        pre[class*="language-"] {
+            background: #050507 !important;
+            margin: 0 !important;
+            padding: 12px !important;
+            border: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal-container">
+    <div class="header">
+        <div><span class="status-dot"></span>CORE_READY // VERCEL_PATCH</div>
+        <div>STATION: LOCALHOST</div>
+    </div>
+
+    <div id="consoleOutput" class="console-output">[SYSTEM]: Память активна. Ожидание пакетов...</div>
+
+    <textarea id="cmdInput" placeholder="[sys]: Запроси скрипт..."></textarea>
+    
+    <div class="controls">
+        <div class="file-input-wrapper">
+            <button class="btn">📎 Снимок/Лог</button>
+            <input type="file" id="fileSelector" onchange="handleFileSelect(this)">
+        </div>
+        <button class="btn" onclick="clearMemory()">Сбросить память</button>
+        <button class="btn btn-execute" id="runBtn" onclick="runExecution()">Выполнить</button>
+    </div>
+
+    <div id="fileBadge" class="file-badge"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+<script>
+    // Путь ведет на нашу серверную функцию Vercel
+    const API_URL = '/api/generate';
+
+    let attachedFile = null;
+    let chatHistory = [];
+
+    const SYSTEM_INSTRUCTION = "Ты — продвинутый ИИ-инструмент. Пиши строго по делу, без вежливости. Помни контекст. Весь генерируемый код ОБЯЗАТЕЛЬНО оборачивай в тройные обратные кавычки с указанием языка.";
+
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            attachedFile = {
+                mimeType: file.type || "text/plain",
+                data: e.target.result.split(',')[1],
+                name: file.name
+            };
+            const badge = document.getElementById('fileBadge');
+            badge.innerText = `Загружен файл: ${file.name}`;
+            badge.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearMemory() {
+        chatHistory = [];
+        attachedFile = null;
+        document.getElementById('cmdInput').value = '';
+        document.getElementById('fileBadge').style.display = 'none';
+        document.getElementById('consoleOutput').innerHTML = '[SYSTEM]: Память очищена.';
+    }
+
+    function formatMarkdown(text) {
+        const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)\n```/g;
+        
+        return text.replace(codeBlockRegex, function(match, lang, code) {
+            const language = lang.toLowerCase() || 'txt';
+            const safeCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const blockId = 'code_' + Math.random().toString(36).substr(2, 9);
+            
+            return `
+            <div class="code-block-container">
+                <div class="code-block-header">
+                    <span>LANG: ${language.toUpperCase()}</span>
+                    <button class="copy-btn-custom" onclick="copyCodeRaw('${blockId}', this)">[Copy Code]</button>
+                </div>
+                <pre class="language-${language}"><code id="${blockId}" class="language-${language}">${safeCode}</code></pre>
+            </div>`;
+        });
+    }
+
+    window.copyCodeRaw = function(blockId, buttonElement) {
+        const codeText = document.getElementById(blockId).innerText;
+        navigator.clipboard.writeText(codeText).then(() => {
+            buttonElement.innerText = '[COPIED!]';
+            buttonElement.style.color = '#fff';
+            buttonElement.style.backgroundColor = '#005f26';
+            
+            setTimeout(() => {
+                buttonElement.innerText = '[Copy Code]';
+                buttonElement.style.color = 'var(--accent-color)';
+                buttonElement.style.backgroundColor = '#282a36';
+            }, 2000);
+        });
+    }
+
+    function renderChat() {
+        const output = document.getElementById('consoleOutput');
+        if (chatHistory.length === 0) return;
+
+        let html = '';
+        chatHistory.forEach(msg => {
+            if (msg.role === 'user') {
+                const textPart = msg.parts.find(p => p.text)?.text || '[Файл]';
+                html += `<div class="log-entry"><div class="log-user">&gt;_ YOU:</div><div>${textPart}</div></div>`;
+            } else if (msg.role === 'model') {
+                const aiText = msg.parts[0].text;
+                html += `<div class="log-entry"><div class="log-accent" style="color:var(--accent-color)">&gt;_ CORE_AI:</div><div class="log-ai">${formatMarkdown(aiText)}</div></div>`;
+            }
+        });
+
+        output.innerHTML = html;
+        Prism.highlightAllUnder(output);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    async function runExecution() {
+        const promptText = document.getElementById('cmdInput').value.trim();
+        const output = document.getElementById('consoleOutput');
+        const runBtn = document.getElementById('runBtn');
+
+        if (!promptText && !attachedFile) return;
+
+        runBtn.disabled = true;
+        document.getElementById('cmdInput').value = '';
+
+        const userParts = [];
+        if (attachedFile) userParts.push({ inlineData: { mimeType: attachedFile.mimeType, data: attachedFile.data } });
+        if (promptText) userParts.push({ text: promptText });
+
+        chatHistory.push({ role: "user", parts: userParts });
+        renderChat();
+        
+        output.innerHTML += `<div id="loadingStatus" style="color: #6272a4;">📡 СВЯЗЬ С ЯДРОМ... ОБРАБОТКА...</div>`;
+        output.scrollTop = output.scrollHeight;
+
+        attachedFile = null;
+        document.getElementById('fileBadge').style.display = 'none';
+
+        const requestData = {
+            contents: chatHistory, 
+            systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] }
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            });
+
+            const data = await response.json();
+            
+            // Исправлен баг "chunks" — теперь блок try/catch/finally работает корректно
+            if (!response.ok) throw new Error(data.error || 'Ошибка API');
+
+            chatHistory.push({ role: "model", parts: [{ text: data.candidates[0].content.parts[0].text }] });
+            renderChat();
+
+        } catch (error) {
+            chatHistory.pop();
+            renderChat();
+            output.innerHTML += `<div class="error-text">[CRITICAL_ERROR]: ${error.message}</div>`;
+        } finally {
+            const loader = document.getElementById('loadingStatus');
+            if (loader) loader.remove();
+            runBtn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
